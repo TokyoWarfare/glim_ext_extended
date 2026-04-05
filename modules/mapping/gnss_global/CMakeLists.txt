@@ -10,10 +10,12 @@ find_package(spdlog REQUIRED)
 if($ENV{ROS_VERSION} EQUAL 2)
   # ROS2
   find_package(ament_cmake_auto REQUIRED)
+  find_package(sensor_msgs REQUIRED)
   ament_auto_find_build_dependencies()
 
   ament_auto_add_library(gnss_global SHARED
     src/glim_ext/gnss_global_module_ros2.cpp
+    src/glim_ext/geodetic.cpp
   )
 elseif($ENV{ROS_VERSION} EQUAL 1)
   # ROS1

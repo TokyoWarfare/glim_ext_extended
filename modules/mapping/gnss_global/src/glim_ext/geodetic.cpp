@@ -71,6 +71,78 @@ Eigen::Isometry3d calc_T_ecef_nwz(const Eigen::Vector3d& ecef, double radius) {
   return T_ecef_nwz;
 }
 
+// ---------------------------------------------------------------------------
+// UTM projection  (WGS84 Transverse Mercator, Snyder 1987 §8)
+// ---------------------------------------------------------------------------
+
+static constexpr double kUTMk0          = 0.9996;          // UTM scale factor
+static constexpr double kUTMFalseE      = 500000.0;        // false easting (m)
+static constexpr double kUTMFalseN_S    = 10000000.0;      // false northing for S hemisphere
+
+int ecef_to_utm_zone(double /*lat*/, double lon) {
+  return static_cast<int>(std::floor((lon + 180.0) / 6.0)) % 60 + 1;
+}
+
+Eigen::Vector2d wgs84_to_utm_xy(double lat, double lon) {
+  const int zone      = ecef_to_utm_zone(lat, lon);
+  const double lon0   = ((zone - 1) * 6 - 180 + 3) * M_PI / 180.0;  // central meridian
+
+  const double phi    = lat * M_PI / 180.0;
+  const double lam    = lon * M_PI / 180.0;
+  const double dL     = lam - lon0;
+
+  const double sinphi = std::sin(phi);
+  const double cosphi = std::cos(phi);
+  const double tanphi = std::tan(phi);
+
+  // Prime-vertical radius of curvature
+  const double N_pv   = kSemimajorAxis / std::sqrt(1.0 - kFirstEccentricitySquared * sinphi * sinphi);
+
+  const double T  = tanphi * tanphi;
+  const double C  = (kFirstEccentricitySquared / (1.0 - kFirstEccentricitySquared)) * cosphi * cosphi;
+  const double A  = cosphi * dL;
+  const double A2 = A * A;
+  const double A3 = A2 * A;
+  const double A4 = A3 * A;
+  const double A5 = A4 * A;
+  const double A6 = A5 * A;
+
+  // Meridional arc length M (from equator to phi)
+  const double e2  = kFirstEccentricitySquared;
+  const double e4  = e2 * e2;
+  const double e6  = e4 * e2;
+  const double M   = kSemimajorAxis * (
+      (1.0 - e2 / 4.0 - 3.0 * e4 / 64.0 - 5.0 * e6 / 256.0)  * phi
+    - (3.0 * e2 / 8.0 + 3.0 * e4 / 32.0 + 45.0 * e6 / 1024.0) * std::sin(2.0 * phi)
+    + (15.0 * e4 / 256.0 + 45.0 * e6 / 1024.0)                 * std::sin(4.0 * phi)
+    - (35.0 * e6 / 3072.0)                                       * std::sin(6.0 * phi));
+
+  const double ep2 = e2 / (1.0 - e2);  // second eccentricity squared
+
+  const double easting = kUTMk0 * N_pv * (
+      A
+    + (1.0 - T + C)                                    * A3 / 6.0
+    + (5.0 - 18.0 * T + T * T + 72.0 * C - 58.0 * ep2) * A5 / 120.0)
+    + kUTMFalseE;
+
+  const double northing = kUTMk0 * (
+      M
+    + N_pv * tanphi * (
+        A2 / 2.0
+      + (5.0 - T + 9.0 * C + 4.0 * C * C)                             * A4 / 24.0
+      + (61.0 - 58.0 * T + T * T + 600.0 * C - 330.0 * ep2)           * A6 / 720.0))
+    + (lat < 0.0 ? kUTMFalseN_S : 0.0);
+
+  return {easting, northing};
+}
+
+Eigen::Vector3d enu_to_utm(const Eigen::Vector3d& enu, double datum_lat, double datum_lon, double datum_alt) {
+  const Eigen::Vector2d origin = wgs84_to_utm_xy(datum_lat, datum_lon);
+  return {origin.x() + enu.x(), origin.y() + enu.y(), datum_alt + enu.z()};
+}
+
+// ---------------------------------------------------------------------------
+
 double harversine(const Eigen::Vector2d& latlon1, const Eigen::Vector2d& latlon2) {
   const double lat1 = latlon1[0];
   const double lon1 = latlon1[1];

@@ -14,7 +14,7 @@
   <depend condition="$ROS_VERSION == 2">rclcpp</depend>
 
   <depend>glim</depend>
-  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
 
   <export>
     <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
