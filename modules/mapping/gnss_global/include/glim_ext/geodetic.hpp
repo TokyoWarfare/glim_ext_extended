@@ -23,6 +23,9 @@ int ecef_to_utm_zone(double lat, double lon);
 /// are applied so the result is a standard UTM grid coordinate.
 Eigen::Vector2d wgs84_to_utm_xy(double lat, double lon);
 
+/// Same as wgs84_to_utm_xy but forces a specific UTM zone (for zone-crossing safety).
+Eigen::Vector2d wgs84_to_utm_xy(double lat, double lon, int forced_zone);
+
 /// Converts an ENU point (metres from datum) to UTM easting / northing / altitude.
 /// The UTM zone is locked to the one that contains datum_lon.
 /// utm.x = UTM easting, utm.y = UTM northing, utm.z = datum_alt + enu.z().

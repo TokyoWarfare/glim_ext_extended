@@ -143,6 +143,7 @@ if(DEFINED ENV{ROS_VERSION})
   if($ENV{ROS_VERSION} EQUAL 2)
     # ROS2
     install(DIRECTORY config DESTINATION share/glim_ext)
+    install(DIRECTORY EGM_tables DESTINATION share/glim_ext)
     ament_target_dependencies(glim_ext glim)
     ament_export_libraries(${glim_ext_LIBRARIES})
     ament_package()

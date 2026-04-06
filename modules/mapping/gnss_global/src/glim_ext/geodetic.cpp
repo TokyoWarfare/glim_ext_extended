@@ -84,7 +84,11 @@ int ecef_to_utm_zone(double /*lat*/, double lon) {
 }
 
 Eigen::Vector2d wgs84_to_utm_xy(double lat, double lon) {
-  const int zone      = ecef_to_utm_zone(lat, lon);
+  return wgs84_to_utm_xy(lat, lon, ecef_to_utm_zone(lat, lon));
+}
+
+Eigen::Vector2d wgs84_to_utm_xy(double lat, double lon, int forced_zone) {
+  const int zone      = forced_zone;
   const double lon0   = ((zone - 1) * 6 - 180 + 3) * M_PI / 180.0;  // central meridian
 
   const double phi    = lat * M_PI / 180.0;

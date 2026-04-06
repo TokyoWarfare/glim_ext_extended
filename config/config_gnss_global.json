@@ -1,7 +1,6 @@
 {
   "gnss": {
     "gnss_topic": "/navsatfix",
-    "min_baseline": 10.0,
     "prior_inf_scale": [1e3, 1e3, 1e3],
     "min_fix_status": 1,
     "sbas_noise_inflation": 10.0
