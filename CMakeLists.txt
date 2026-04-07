@@ -14,7 +14,6 @@ option(ENABLE_DESKEWING "Enable Point Cloud Deskewing module" ON)
 # Local and global mapping modules
 option(ENABLE_SCAN_CONTEXT "Enable ScanContext Loop Detector" OFF)
 option(ENABLE_DBOW "Enable DBoW Loop Detector" OFF)
-option(ENABLE_GNSS "Enable GNSS module (ROS1 is not supported)" ON)
 option(ENABLE_FLATEARTHER "Enable flat earth assumption module" ON)
 
 #################
@@ -91,11 +90,6 @@ if(ENABLE_DBOW)
   list(APPEND glim_ext_LIBRARIES dbow_loop_detector)
 endif()
 
-if(ENABLE_GNSS)
-  add_subdirectory(modules/mapping/gnss_global)
-  list(APPEND glim_ext_LIBRARIES gnss_global)
-endif()
-
 if(ENABLE_FLATEARTHER)
   add_subdirectory(modules/mapping/flat_earther)
   list(APPEND glim_ext_LIBRARIES flat_earther)
@@ -143,7 +137,6 @@ if(DEFINED ENV{ROS_VERSION})
   if($ENV{ROS_VERSION} EQUAL 2)
     # ROS2
     install(DIRECTORY config DESTINATION share/glim_ext)
-    install(DIRECTORY EGM_tables DESTINATION share/glim_ext)
     ament_target_dependencies(glim_ext glim)
     ament_export_libraries(${glim_ext_LIBRARIES})
     ament_package()
